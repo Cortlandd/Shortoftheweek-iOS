@@ -20,29 +20,17 @@ public struct HomeView: View {
     }
 
     public var body: some View {
-        NavigationStack {
-            WithPerceptionTracking {
-                ZStack {
-                    Color.black.ignoresSafeArea()
+        WithPerceptionTracking {
+            ZStack {
+                Color.black.ignoresSafeArea()
 
-                    feedScrollView
+                feedScrollView
 
-                    heroDetailOverlay
-                }
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .principal) {
-                        Image("sotwLogoTransparent")
-                            .resizable()
-                            .scaledToFill()
-                            .frame(height: 50)
-                            .accessibilityLabel("Short of the Week")
-                    }
-                }
-                .ignoresSafeArea(edges: .top)
-                .onAppear {
-                    store.send(.onAppear)
-                }
+                heroDetailOverlay
+            }
+            .ignoresSafeArea(edges: .top)
+            .onAppear {
+                store.send(.onAppear)
             }
         }
     }
@@ -242,18 +230,18 @@ private struct FilmDetailViewWrapper: View {
     }
 }
 
-#Preview {
-    HomeView(
-        store: Store(
-            initialState: HomeReducer.State(
-                films: IdentifiedArray(uniqueElements: SOTWSeed.sampleFilms)
-            )
-        ) {
-            HomeReducer()
-        } withDependencies: {
-            $0.feedClient.loadPage = { _, _ in
-                SOTWSeed.sampleFilms
-            }
-        }
-    )
-}
+//#Preview {
+//    HomeView(
+//        store: Store(
+//            initialState: HomeReducer.State(
+//                films: IdentifiedArray(uniqueElements: SOTWSeed.sampleFilms)
+//            )
+//        ) {
+//            HomeReducer()
+//        } withDependencies: {
+//            $0.feedClient.loadPage = { _, _ in
+//                SOTWSeed.sampleFilms
+//            }
+//        }, logoNS: <#Namespace.ID#>
+//    )
+//}
