@@ -27,7 +27,7 @@ struct RootView: View {
                   ToolbarItem(placement: .principal) {
                       Image("sotwLogoTransparent")
                           .resizable()
-                          .scaledToFill()
+                          .scaledToFit()
                           .frame(height: 50)
                           .accessibilityLabel("Short of the Week")
                   }
@@ -36,6 +36,7 @@ struct RootView: View {
           .transition(.opacity)
         }
       }
+      .background(Color(hex: "#272E2C").opacity(0.92))
       .task { await store.send(.task).finish() }
       .animation(.easeInOut(duration: 0.35), value: store.showSplash)
     }

@@ -17,6 +17,9 @@ public struct HomeReducer {
 
     @ObservableState
     public struct State: Equatable {
+        /// ViewDisplayMode to handle loading, error, and content
+        var viewDisplayMode: ViewDisplayMode<[Film]> = .loading
+
         /// All films loaded so far.
         var films: IdentifiedArrayOf<Film> = []
 
@@ -73,11 +76,14 @@ public struct HomeReducer {
             // Initial load
             case .onAppear:
                 guard state.films.isEmpty else { return .none }
+                state.viewDisplayMode = .loading
                 return .send(.loadNextPage)
+
             case .binding:
                 return .none
 
             case .refreshPulled:
+                state.viewDisplayMode = .loading
                 state.films = []
                 state.loadedFilmIDs = []
                 state.currentPage = 1
@@ -92,6 +98,9 @@ public struct HomeReducer {
 
                 state.isLoadingPage = true
                 state.errorMessage = nil
+                if state.films.isEmpty {
+                    state.viewDisplayMode = .loading
+                }
                 let page = state.currentPage
                 let limit = 10
 
@@ -107,7 +116,6 @@ public struct HomeReducer {
             case let .pageResponse(.success(newFilms)):
                 state.isLoadingPage = false
 
-                // Deduplicate by film ID to guard against overlapping pages.
                 let filtered = newFilms.filter { !state.loadedFilmIDs.contains($0.id) }
                 filtered.forEach { state.loadedFilmIDs.insert($0.id) }
                 state.films.append(contentsOf: filtered)
@@ -117,12 +125,23 @@ public struct HomeReducer {
                 } else {
                     state.currentPage += 1
                 }
+                
+                if state.films.isEmpty {
+                    state.viewDisplayMode = .empty(message: "No films found.")
+                } else {
+                    state.viewDisplayMode = .content
+                }
 
                 return .none    
 
             case let .pageResponse(.failure(error)):
                 state.isLoadingPage = false
                 state.errorMessage = error.localizedDescription
+                if state.films.isEmpty {
+                    state.viewDisplayMode = .error(message: error.localizedDescription)
+                } else {
+                    state.viewDisplayMode = .content
+                }
                 return .none
 
             case let .filmTapped(film):

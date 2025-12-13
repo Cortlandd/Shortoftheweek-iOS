@@ -22,15 +22,93 @@ public struct HomeView: View {
     public var body: some View {
         WithPerceptionTracking {
             ZStack {
-                Color.black.ignoresSafeArea()
+                switch store.viewDisplayMode {
+                case .loading:
+//                    ZStack {
+//                        Color.black.opacity(0.25).ignoresSafeArea()
+//                        GIFView(name: "activity")
+//                            .frame(width: 56, height: 56)
+//                            .frame(maxWidth: .infinity)
+//                    }
+//                    .transition(.opacity)
+                    
+                    SOTWCustomLoader()
+                    
+                case .error(let message):
+                    VStack(spacing: 12) {
+                        Image("sotwNetworkErrorWhite")
+                            .resizable()
+                            .scaledToFit()
+                            .padding(3)
 
-                feedScrollView
+                        Button {
+                            store.send(.refreshPulled)
+                        } label: {
+                            Text("Retry")
+                                .font(.system(size: 14, weight: .heavy))
+                                .foregroundColor(.black)
+                                .padding(.horizontal, 18)
+                                .padding(.vertical, 12)
+                                .background(Color(hex: "#272E2C").opacity(0.50))
+                                .cornerRadius(10)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                case .empty(let message):
+                    VStack(spacing: 0) {
+                            
+                            Spacer()
+                            
+                            VStack(spacing: 12) {
+                                Text(message)
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(.gray.opacity(0.92))
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 24)
 
-                heroDetailOverlay
+                                Button {
+                                    store.send(.refreshPulled)
+                                } label: {
+                                    Text("Retry")
+                                        .font(.system(size: 14, weight: .heavy))
+                                        .foregroundColor(.black)
+                                        .padding(.horizontal, 18)
+                                        .padding(.vertical, 12)
+                                        .background(Color(hex: "#272E2C").opacity(0.50))
+                                        // Added a shadow to the button for better pop against white
+                                        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                                        .cornerRadius(10)
+                                }
+                            }
+                            
+                            // 2. This Spacer pushes the Image to the very bottom
+                            Spacer()
+
+                            // --- Character Image ---
+                            Image("sotwEmpty")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: .infinity)
+                                // 3. This is key: it lets the image touch the very bottom edge of the screen
+                                .ignoresSafeArea(.container, edges: .bottom)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .ignoresSafeArea(.container, edges: .bottom)
+                        .background(Color.white) // Ensures the background is clean white
+                case .content:
+                    Color.black.ignoresSafeArea()
+
+                    feedScrollView
+
+                    heroDetailOverlay
+                }
             }
             .ignoresSafeArea(edges: .top)
             .onAppear {
                 store.send(.onAppear)
+            }
+            .refreshable {
+                store.send(.refreshPulled)
             }
         }
     }
@@ -63,12 +141,6 @@ public struct HomeView: View {
                     )
                 }
 
-                if store.isLoadingPage {
-                    ProgressView()
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                }
-
                 // "More" button like the website
                 if store.canLoadMore {
                     Button {
@@ -87,17 +159,7 @@ public struct HomeView: View {
                     }
                     .disabled(store.isLoadingPage)
                 }
-
-                if let error = store.errorMessage {
-                    Text(error)
-                        .font(.footnote)
-                        .foregroundColor(.red)
-                        .padding()
-                }
             }
-        }
-        .refreshable {
-            store.send(.refreshPulled)
         }
     }
 
@@ -230,18 +292,62 @@ private struct FilmDetailViewWrapper: View {
     }
 }
 
-//#Preview {
-//    HomeView(
-//        store: Store(
-//            initialState: HomeReducer.State(
-//                films: IdentifiedArray(uniqueElements: SOTWSeed.sampleFilms)
-//            )
-//        ) {
-//            HomeReducer()
-//        } withDependencies: {
-//            $0.feedClient.loadPage = { _, _ in
-//                SOTWSeed.sampleFilms
-//            }
-//        }, logoNS: <#Namespace.ID#>
-//    )
-//}
+#Preview("HomeView - Content") {
+    HomeView(
+        store: Store(
+            initialState: HomeReducer.State(
+                viewDisplayMode: .content,
+                films: IdentifiedArray(uniqueElements: SOTWSeed.sampleFilms)
+            )
+        ) {
+            HomeReducer()
+        } withDependencies: {
+            $0.feedClient.loadPage = { _, _ in
+                SOTWSeed.sampleFilms
+            }
+        }
+    )
+}
+
+#Preview("HomeView - Loading") {
+    var state = HomeReducer.State()
+    HomeView(
+        store: Store(
+            initialState: HomeReducer.State(
+                viewDisplayMode: .loading,
+                films: IdentifiedArray(uniqueElements: SOTWSeed.sampleFilms)
+            )
+        ) {
+            HomeReducer()
+        }
+    )
+}
+
+#Preview("HomeView - Empty") {
+    HomeView(
+        store: Store(
+            initialState: HomeReducer.State(
+                viewDisplayMode: .empty(message: "No films found."),
+                films: IdentifiedArray(uniqueElements: SOTWSeed.sampleFilms),
+                canLoadMore: false,
+            )
+        ) {
+            HomeReducer()
+        }
+    )
+}
+
+
+#Preview("HomeView - Error") {
+    HomeView(
+        store: Store(
+            initialState: HomeReducer.State(
+                viewDisplayMode: .error(message: "Network request failed."),
+                films: IdentifiedArray(uniqueElements: SOTWSeed.sampleFilms),
+                canLoadMore: false,
+            )
+        ) {
+            HomeReducer()
+        }
+    )
+}
