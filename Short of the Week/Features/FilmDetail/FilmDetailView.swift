@@ -36,9 +36,7 @@ public struct FilmDetailView: View {
             ZStack(alignment: .top) {
                 // Background
                 Color.black
-                    .opacity(showDetailContent ? 1.0 : 0.0)
                     .ignoresSafeArea()
-                    .animation(.easeOut(duration: 0.2), value: showDetailContent)
 
                 // Content (scrolls)
                 ScrollView {

@@ -64,8 +64,8 @@ extension Film {
         backgroundImageURL = feedItem.backgroundImage?.canonicalSOTWURL()
         thumbnailURL = feedItem.thumbnail?.canonicalSOTWURL()
 
-        filmmaker = feedItem.filmmaker
-        production = feedItem.production
+        filmmaker = feedItem.filmmaker?.htmlDecoded
+        production = feedItem.production?.htmlDecoded
 
         durationMinutes = Int(feedItem.durationString ?? "")
         country = feedItem.country

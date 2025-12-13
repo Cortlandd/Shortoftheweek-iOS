@@ -75,21 +75,17 @@ public struct HomeView: View {
                                         .padding(.horizontal, 18)
                                         .padding(.vertical, 12)
                                         .background(Color(hex: "#272E2C").opacity(0.50))
-                                        // Added a shadow to the button for better pop against white
                                         .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
                                         .cornerRadius(10)
                                 }
                             }
                             
-                            // 2. This Spacer pushes the Image to the very bottom
                             Spacer()
 
-                            // --- Character Image ---
                             Image("sotwEmpty")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(maxWidth: .infinity)
-                                // 3. This is key: it lets the image touch the very bottom edge of the screen
                                 .ignoresSafeArea(.container, edges: .bottom)
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -116,12 +112,19 @@ public struct HomeView: View {
     private var feedScrollView: some View {
         // Help the type-checker by creating a local constant with explicit type. thx xcode
         let films: IdentifiedArrayOf<Film> = store.films
+        
+        let selectedFilmID: Int? = {
+            guard let destination = store.destination else { return nil }
+            if case let .filmDetail(state) = destination { return state.film.id }
+            return nil
+        }()
 
         return ScrollView {
             LazyVStack(spacing: 0) {
                 ForEach(films, id: \.id) { film in
                     FilmRow(
                         film: film,
+                        selectedFilmID: selectedFilmID,
                         onTap: {
                             // Start hero transition
                             showDetailContent = false
@@ -193,7 +196,7 @@ public struct HomeView: View {
                             }
                         }
                     )
-                    .transition(.opacity)
+                    //.transition(.opacity)
                     .zIndex(10)
                 }
             }
@@ -204,6 +207,7 @@ public struct HomeView: View {
 /// Extracted to reduce generic depth in the main body.
 private struct FilmRow: View {
     let film: Film
+    let selectedFilmID: Int?
     let onTap: () -> Void
     let namespace: Namespace.ID
 
@@ -211,6 +215,7 @@ private struct FilmRow: View {
         VStack(spacing: 0) {
             Button(action: onTap) {
                 HomeHeroCardView(film: film, namespace: namespace)
+                    .opacity(selectedFilmID == film.id ? 0.0 : 1.0)
             }
             .buttonStyle(.plain)
 
