@@ -4,7 +4,6 @@
 //
 //  Created by Cortland Walker on 12/11/25.
 //
-
 import ComposableArchitecture
 import Perception
 import SwiftUI
@@ -17,6 +16,7 @@ public struct FilmDetailView: View {
     public let onClose: () -> Void
 
     @State private var isVideoRevealed: Bool = false
+    
     @State private var articleHeight: CGFloat = 1
 
     public init(
@@ -40,9 +40,8 @@ public struct FilmDetailView: View {
                 ScrollView {
                     VStack(spacing: 0) {
                         heroArea
-
+                        
                         if store.film.kind == .video {
-                            topicHeader
                             creditsHeader
                         }
 
@@ -50,6 +49,7 @@ public struct FilmDetailView: View {
                             detailBody
                                 .transition(.opacity)
                         } else {
+                            // keep spacing stable during transition
                             Color.clear.frame(height: 1)
                         }
                     }
@@ -65,29 +65,45 @@ public struct FilmDetailView: View {
                         Button {
                             onClose()
                         } label: {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 16, weight: .semibold))
-                                .padding(8)
-                                .contentShape(Rectangle())
+                            if #available(iOS 26.0, *) {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .padding(8)
+                                    .contentShape(Circle())
+                            } else {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.white)
+                                        .frame(width: 42, height: 42)
+                                    
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
                         }
+                        .buttonStyle(PlainButtonStyle())
                         .accessibilityLabel("Close")
                     }
                 }
+                .toolbarBackground(.hidden, for: .navigationBar)
                 .scrollIndicators(.hidden)
                 .ignoresSafeArea(edges: .top)
             }
-            .toolbar(.hidden, for: .tabBar)
+            .toolbarVisibility(.hidden, for: .tabBar)
             .onAppear { store.send(.onAppear) }
             .onChange(of: store.film.id) { _, _ in
+                // New film selected: reset the inline player.
                 isVideoRevealed = false
             }
             .onChange(of: showDetailContent) { _, newValue in
+                // If we're mid-transition back, keep the thumbnail visible next time.
                 if !newValue { isVideoRevealed = false }
             }
         }
     }
 
-    // MARK: - Hero area
+    // MARK: - Hero area (image expands; video fades in over same region)
 
     private let heroHeight: CGFloat = 320
 
@@ -97,8 +113,10 @@ public struct FilmDetailView: View {
                 heroImage
                     .frame(width: proxy.size.width, height: proxy.size.height)
                     .clipped()
-                    .matchedGeometryEffect(id: "hero-image-\(store.film.id)", in: namespace, isSource: false)
+                    // Navigation hero transition is now driven by `.navigationTransition(.zoom(...))`
+                    // in the presenting view. We intentionally do not use matchedGeometryEffect here.
 
+                // gradient overlay
                 LinearGradient(
                     gradient: Gradient(colors: [
                         Color.black.opacity(0.05),
@@ -109,8 +127,9 @@ public struct FilmDetailView: View {
                     endPoint: .bottom
                 )
                 .allowsHitTesting(false)
-
+                
                 if store.film.isNews {
+                    // Centered overlay like the website hero.
                     FilmDetailNewsHeroOverlay(film: store.film)
                         .padding(.horizontal, 18)
                         .padding(.top, 32)
@@ -125,18 +144,18 @@ public struct FilmDetailView: View {
                             .allowsHitTesting(true)
                     }
 
-                    // play overlay (tap to reveal)
+                    // text + play button overlay
                     if showDetailContent, store.film.playURL != nil, !isVideoRevealed {
                         FilmDetailPlayHeroOverlay(film: store.film)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                withAnimation(.easeOut(duration: 0.2)) {
-                                    isVideoRevealed = true
-                                }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            withAnimation(.easeOut(duration: 0.2)) {
+                                isVideoRevealed = true
                             }
-                            .padding(.horizontal, 18)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                            .zIndex(2)
+                        }
+                        .padding(.horizontal, 18)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .zIndex(2)
                     }
                 }
             }
@@ -144,16 +163,10 @@ public struct FilmDetailView: View {
         .frame(height: heroHeight)
     }
 
-    private var heroImage: some View {
-        // ✅ FilmDetail owns thumbnail selection:
-        // - News detail: prefer background image (usually higher impact)
-        // - Video detail: prefer background image
-        let url: URL? = store.film.isNews
-            ? (store.film.backgroundImageURL ?? store.film.thumbnailURL)
-            : (store.film.backgroundImageURL ?? store.film.thumbnailURL)
 
-        return Group {
-            if let url {
+    private var heroImage: some View {
+        Group {
+            if let url = store.film.backgroundImageURL ?? store.film.thumbnailURL {
                 CachedAsyncImage(url: url, contentMode: .fill) {
                     Color.black.opacity(0.35)
                 }
@@ -162,76 +175,30 @@ public struct FilmDetailView: View {
             }
         }
     }
-    
-    // MARK: - Topic header
-    
-    private var topicHeader: some View {
-        ZStack(alignment: .center) {
-            HStack(spacing: 4) {
-                if let genre = store.film.genre?.displayName, !genre.isEmpty {
-                    Text(genre.uppercased())
-                        .font(Font.custom("Dom Diagonal W03 Bd", size: 18))
-                        .fontWeight(.bold)
-                        .foregroundStyle(.green.opacity(0.80))
-                }
-                
-                Text("About".uppercased())
-                    .font(Font.custom("Dom Diagonal W03 Bd", size: 18))
-                    .fontWeight(.bold)
-                    .foregroundStyle(Color(hex: "#95A6A1"))
-                
-                if let topic = store.film.topic?.displayName, !topic.isEmpty {
-                    Text(topic.uppercased())
-                        .font(Font.custom("Dom Diagonal W03 Bd", size: 18))
-                        .fontWeight(.bold)
-                        .foregroundStyle(.orange.opacity(0.80))
-                }
-                
-                Text("In".uppercased())
-                    .font(Font.custom("Dom Diagonal W03 Bd", size: 18))
-                    .fontWeight(.bold)
-                    .foregroundStyle(Color(hex: "#95A6A1"))
-                
-                if let style = store.film.style?.displayName, !style.isEmpty {
-                    Text(style.uppercased())
-                        .font(Font.custom("Dom Diagonal W03 Bd", size: 18))
-                        .fontWeight(.bold)
-                        .foregroundStyle(.pink.opacity(0.80))
-                }
-            }
-        }
-        .padding(.vertical, 16)
-        .frame(maxWidth: .infinity)
-        .background(Color(hex: "#647370"))
-        .multilineTextAlignment(.center)
-    }
 
-    // MARK: - Credits header (video only)
+    // MARK: - Credit body
 
     private var creditsHeader: some View {
         VStack(spacing: 6) {
             if let director = store.film.filmmaker, !director.isEmpty {
-                Text("Directed by \(director)".uppercased())
-                    .font(Font.custom("Dom Diagonal W03 Bd", size: 18))
-                    .fontWeight(.bold)
-                    .lineSpacing(2)
-                    .foregroundStyle(Color(hex: "#D7E0DB"))
+                Text("Directed by \(director)")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.92))
+                    .italic()
             }
 
             if let producer = store.film.production, !producer.isEmpty {
-                Text("Produced by \(producer)".uppercased())
-                    .font(Font.custom("Dom Diagonal W03 Bd", size: 18))
-                    .fontWeight(.bold)
-                    .lineSpacing(2)
-                    .foregroundStyle(Color(hex: "#D7E0DB"))
+                Text("Produced by \(producer)")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.92))
+                    .italic()
             }
 
             if let countryName = store.film.country?.displayName, !countryName.isEmpty {
-                Text("Made in \(countryName)".uppercased())
-                    .font(Font.custom("Dom Diagonal W03 Bd", size: 18))
-                    .fontWeight(.bold)
-                    .lineSpacing(2)
-                    .foregroundStyle(Color(hex: "#D7E0DB"))
+                Text("Made in \(countryName)")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.92))
+                    .italic()
             }
         }
         .padding(.vertical, 16)
@@ -240,20 +207,25 @@ public struct FilmDetailView: View {
         .multilineTextAlignment(.center)
     }
 
+
     // MARK: - Detail body
 
     private var detailBody: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // ✅ FilmDetail: show author ONLY for news.
-            if !store.film.isNews, let author = store.film.author {
-                Text(author.displayName.uppercased())
+            
+            // Author byline (News only)
+            if store.film.isNews, let author = store.film.author {
+                Text(author.displayName)
                     .font(.system(size: 24, weight: .semibold))
                     .foregroundStyle(Color(hex: "#272E2C").opacity(0.92))
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.top, 4)
             }
 
-            //ArticleBlocksView(blocks: store.blocks)
+            let normalizedHTML = store.film.articleHTML.wrappingNormalized
+            let blocks = ArticleParser.parse(normalizedHTML)
+
+            ArticleBlocksView(blocks: blocks)
 
             if let error = store.errorMessage {
                 Text(error)
@@ -268,7 +240,7 @@ public struct FilmDetailView: View {
         .background(Color(hex: "#D7E0DB"))
     }
 
-    // MARK: - Metadata (used by overlays)
+    // MARK: - Metadata
 
     private var metadataLine: String? {
         var parts: [String] = []
@@ -291,25 +263,27 @@ private struct FilmDetailNewsHeroOverlay: View {
             if let metadataLine {
                 Text(metadataLine.uppercased())
                     .font(.system(size: 11, weight: .heavy))
-                    .foregroundColor(.white)
+                    .foregroundColor(.white.opacity(0.95))
                     .multilineTextAlignment(.center)
-                    .padding(.bottom, 4)
             }
 
             Text(film.title.uppercased())
                 .font(Font.custom("Dom Diagonal W03 Bd", size: 24))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
-                .padding(.bottom, 8)
-            
+                .lineLimit(3)
+                .minimumScaleFactor(0.85)
+
             if let author = film.author {
                 Text(author.displayName)
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.white.opacity(0.95))
                     .multilineTextAlignment(.center)
+                    .lineLimit(1)
             }
         }
-        .frame(maxWidth: 420)
+        .padding(.horizontal, 16)
+        .frame(maxWidth: 480)
     }
 
     private var metadataLine: String? {
@@ -333,13 +307,15 @@ private struct FilmDetailPlayHeroOverlay: View {
                 .padding(22)
                 .background(Color.black.opacity(0.55))
                 .clipShape(Circle())
-                .accessibilityLabel("Play Button")
+                .accessibilityLabel("Play")
 
             if let metadataLine {
                 Text(metadataLine.uppercased())
                     .font(Font.custom("Dom Diagonal W03 Bd", size: 14))
-                    .foregroundColor(.white)
+                    .foregroundColor(.white.opacity(0.95))
                     .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.85)
             }
 
             Text(film.title.uppercased())
@@ -347,15 +323,18 @@ private struct FilmDetailPlayHeroOverlay: View {
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
                 .lineLimit(3)
-            
+
             if let synopsis = film.synopsis, !synopsis.isEmpty {
                 Text(synopsis)
                     .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(.white)
+                    .foregroundColor(.white.opacity(0.95))
                     .multilineTextAlignment(.center)
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.9)
             }
         }
-        .frame(maxWidth: 420)
+        .padding(.horizontal, 16)
+        .frame(maxWidth: 480)
     }
 
     private var metadataLine: String? {
@@ -368,8 +347,6 @@ private struct FilmDetailPlayHeroOverlay: View {
         return parts.isEmpty ? nil : parts.joined(separator: " / ")
     }
 }
-
-// MARK: - Previews
 
 #Preview("FilmDetailView – No Vacancy (expanded)") {
     previewFilmDetail(index: 0, showDetail: true)
@@ -427,8 +404,8 @@ private extension Array {
 extension String {
     var wrappingNormalized: String {
         self
-            .replacingOccurrences(of: "\u{00A0}", with: " ")
-            .replacingOccurrences(of: "\u{202F}", with: " ")
-            .replacingOccurrences(of: "\u{2007}", with: " ")
+            .replacingOccurrences(of: "\u{00A0}", with: " ") // nbsp
+            .replacingOccurrences(of: "\u{202F}", with: " ") // narrow nbsp
+            .replacingOccurrences(of: "\u{2007}", with: " ") // figure space
     }
 }

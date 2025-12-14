@@ -10,62 +10,63 @@ import ComposableArchitecture
 import Perception
 
 struct RootView: View {
-  @Bindable var store: StoreOf<RootReducer>
+    @Bindable var store: StoreOf<RootReducer>
 
-  var body: some View {
-    WithPerceptionTracking {
-      ZStack {
-          TabView(selection: $store.selectedTab.sending(\.selectTab)) {
-              Tab("Home", systemImage: "house.fill", value: RootReducer.Tab.home) {
-                  NavigationStack {
-                    HomeView(store: store.scope(state: \.home, action: \.home))
-                        .navigationBarTitleDisplayMode(.inline)
-                        .toolbar {
-                          ToolbarItem(placement: .principal) {
-                              if !store.home.isShowingDetail {
-                                  Image("sotwLogoTransparent")
-                                      .resizable()
-                                      .scaledToFit()
-                                      .frame(height: 50)
-                                      .accessibilityLabel("Short of the Week")
-                              } else {
-                                  EmptyView()
-                              }
-                          }
+    var body: some View {
+        WithPerceptionTracking {
+            ZStack {
+                TabView(selection: $store.selectedTab.sending(\.selectTab)) {
+                    Tab("Home", systemImage: "house.fill", value: RootReducer.Tab.home) {
+                        NavigationStack {
+                            HomeView(store: store.scope(state: \.home, action: \.home))
+                                .navigationBarTitleDisplayMode(.inline)
+                                .toolbar {
+                                    ToolbarItem(placement: .principal) {
+                                        if !store.home.isShowingDetail {
+                                            Image("sotwLogoTransparent")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(height: 50)
+                                                .accessibilityLabel("Short of the Week")
+                                        } else {
+                                            // The HomeView toolbar item will be hidden during presentation
+                                            EmptyView()
+                                        }
+                                    }
+                                }
                         }
-                  }
-              }
-              Tab("News", systemImage: "newspaper.fill", value: RootReducer.Tab.news) {
-                NavigationStack {
-                  NewsView(store: store.scope(state: \.news, action: \.news))
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                      ToolbarItem(placement: .principal) {
-                        Image("newsBanner")
-                          .resizable()
-                          .scaledToFit()
-                          .frame(height: 50)
-                          .accessibilityLabel("News Page")
-                      }
+                    }
+                    Tab("News", systemImage: "newspaper.fill", value: RootReducer.Tab.news) {
+                        NavigationStack {
+                            NewsView(store: store.scope(state: \.news, action: \.news))
+                                .navigationBarTitleDisplayMode(.inline)
+                                .toolbar {
+                                    ToolbarItem(placement: .principal) {
+                                        Image("newsBanner")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(height: 50)
+                                            .accessibilityLabel("News Page")
+                                    }
+                                }
+                        }
                     }
                 }
-              }
-          }
-          .transition(.opacity)
-      }
-      .background(Color(hex: "#272E2C").opacity(0.92))
-      .onAppear {
-          store.send(.onAppear)
-      }
+                .transition(.opacity)
+            }
+            .background(Color(hex: "#272E2C").opacity(0.92))
+            .onAppear {
+                store.send(.onAppear)
+            }
+        }
     }
-  }
 }
 
 extension HomeReducer.State {
-  var isShowingDetail: Bool {
-    if case .filmDetail = destination { return true }
-    return false
-  }
+    var isShowingDetail: Bool {
+        if case .some(.filmDetail) = destination { return true }
+        return false
+    }
 }
 
 #if DEBUG
@@ -79,7 +80,7 @@ import ComposableArchitecture
                 selectedTab: .home,
                 showSplash: true,
                 home: HomeReducer.State(),
-                news: NewsReducer.State(),
+                news: NewsReducer.State()
             ),
             reducer: { RootReducer() }
         )
@@ -101,7 +102,7 @@ import ComposableArchitecture
                     s.canLoadMore = true
                     s.isLoadingPage = false
                     return s
-                }(),
+                }()
             ),
             reducer: { RootReducer() }
         )
