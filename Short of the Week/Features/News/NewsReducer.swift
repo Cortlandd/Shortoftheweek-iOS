@@ -1,16 +1,17 @@
 //
-//  Home.swift
+//  NewsReducer.swift
 //  Short of the Week
 //
-//  Created by Cortland Walker on 12/11/25.
+//  Created by Cortland Walker on 12/13/25.
 //
 
 import ComposableArchitecture
+import Dependencies
 import Foundation
 
-/// Home feature: shows the paginated feed of films/articles.
+/// News feature: shows the paginated news feed.
 @Reducer
-public struct HomeReducer {
+public struct NewsReducer {
     public init() {}
 
     // MARK: - State
@@ -34,7 +35,7 @@ public struct HomeReducer {
         /// Optional error string you can surface in the UI if you want.
         var errorMessage: String?
 
-        /// Presentation: FilmDetailReducer sheet.
+        /// Presentation: FilmDetailReducer overlay (same as Home).
         @Presents var destination: Destination.State?
     }
 
@@ -73,7 +74,6 @@ public struct HomeReducer {
         Reduce { state, action in
             switch action {
 
-            // Initial load
             case .onAppear:
                 guard state.films.isEmpty else { return .none }
                 state.viewDisplayMode = .loading
@@ -101,12 +101,14 @@ public struct HomeReducer {
                 if state.films.isEmpty {
                     state.viewDisplayMode = .loading
                 }
+
                 let page = state.currentPage
                 let limit = 10
 
                 return .run { send in
                     do {
-                        let films = try await feedClient.loadPage(.mixed, page, limit)
+                        // ✅ NEWS endpoint
+                        let films = try await feedClient.loadPage(.news, page, limit)
                         await send(.pageResponse(.success(films)))
                     } catch {
                         await send(.pageResponse(.failure(error)))
@@ -125,18 +127,19 @@ public struct HomeReducer {
                 } else {
                     state.currentPage += 1
                 }
-                
+
                 if state.films.isEmpty {
-                    state.viewDisplayMode = .empty(message: "No films found.")
+                    state.viewDisplayMode = .empty(message: "No news found.")
                 } else {
                     state.viewDisplayMode = .content
                 }
 
-                return .none    
+                return .none
 
             case let .pageResponse(.failure(error)):
                 state.isLoadingPage = false
                 state.errorMessage = error.localizedDescription
+
                 if state.films.isEmpty {
                     state.viewDisplayMode = .error(message: error.localizedDescription)
                 } else {
@@ -149,8 +152,8 @@ public struct HomeReducer {
                 return .none
 
             case .dismissDetailTapped:
-                  state.destination = nil
-                  return .none
+                state.destination = nil
+                return .none
 
             case .destination(.dismiss):
                 state.destination = nil

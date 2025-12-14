@@ -22,6 +22,7 @@ struct RootReducer {
       
         var showSplash = true
         var home = HomeReducer.State()
+        var news = NewsReducer.State()
     }
 
     enum Action: BindableAction {
@@ -29,6 +30,7 @@ struct RootReducer {
         case selectTab(RootReducer.Tab)
         case splashFinished
         case home(HomeReducer.Action)
+        case news(NewsReducer.Action)
         case binding(BindingAction<State>)
     }
 
@@ -36,6 +38,7 @@ struct RootReducer {
         BindingReducer()
 
         Scope(state: \.home, action: \.home) { HomeReducer() }
+        Scope(state: \.news, action: \.news) { NewsReducer() }
 
         Reduce { state, action in
             switch action {
@@ -52,7 +55,7 @@ struct RootReducer {
                 state.showSplash = false
                 return .none
 
-            case .home:
+            case .home, .news:
                 return .none
             case .binding:
                 return .none

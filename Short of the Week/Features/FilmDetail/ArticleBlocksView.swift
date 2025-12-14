@@ -17,7 +17,7 @@ struct ArticleBlocksView: View {
                 switch block {
                 case .heading(let level, let text):
                     Text(text)
-                        .font(.system(size: headingSize(for: level), weight: .semibold))
+                        .font(Font.custom("Dom Diagonal W03 Bd", size: headingSize(for: level)))
                         .foregroundStyle(Color(hex: "#272E2C"))
                         .padding(.top, level <= 2 ? 10 : 6)
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -91,7 +91,7 @@ import SwiftUI
         ArticleBlocksView(blocks: blocks)
             .padding(16)
     }
-    .background(Color.black)
+    .background(Color(hex: "#D7E0DB"))
     .preferredColorScheme(.dark)
 }
 
@@ -103,7 +103,7 @@ import SwiftUI
         ArticleBlocksView(blocks: blocks)
             .padding(16)
     }
-    .background(Color.black)
+    .background(Color(hex: "#D7E0DB"))
     .preferredColorScheme(.dark)
 }
 #endif

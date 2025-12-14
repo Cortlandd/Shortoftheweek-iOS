@@ -36,6 +36,21 @@ struct RootView: View {
                           }
                     }
                 }
+                Tab("News", systemImage: "newspaper.fill", value: RootReducer.Tab.news) {
+                  NavigationStack {
+                    NewsView(store: store.scope(state: \.news, action: \.news))
+                      .navigationBarTitleDisplayMode(.inline)
+                      .toolbar {
+                        ToolbarItem(placement: .principal) {
+                          Image("newsBanner")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 50)
+                            .accessibilityLabel("News Page")
+                        }
+                      }
+                  }
+                }
             }
             .transition(.opacity)
         }
@@ -46,3 +61,45 @@ struct RootView: View {
     }
   }
 }
+
+#if DEBUG
+import SwiftUI
+import ComposableArchitecture
+
+#Preview("RootView – Splash") {
+    RootView(
+        store: Store(
+            initialState: RootReducer.State(
+                selectedTab: .home,
+                showSplash: true,
+                home: HomeReducer.State(),
+                news: NewsReducer.State(),
+            ),
+            reducer: { RootReducer() }
+        )
+    )
+    .preferredColorScheme(.dark)
+}
+
+#Preview("RootView – Tabs") {
+    RootView(
+        store: Store(
+            initialState: RootReducer.State(
+                selectedTab: .news,
+                showSplash: false,
+                home: HomeReducer.State(),
+                news: {
+                    var s = NewsReducer.State()
+                    s.viewDisplayMode = .content
+                    s.films = IdentifiedArrayOf(uniqueElements: SOTWSeed.sampleFilms)
+                    s.canLoadMore = true
+                    s.isLoadingPage = false
+                    return s
+                }(),
+            ),
+            reducer: { RootReducer() }
+        )
+    )
+    .preferredColorScheme(.dark)
+}
+#endif

@@ -1,21 +1,21 @@
 //
-//  HomeView.swift
+//  NewsView.swift
 //  Short of the Week
 //
-//  Created by Cortland Walker on 12/11/25.
+//  Created by Cortland Walker on 12/13/25.
 //
 
 import ComposableArchitecture
 import Perception
 import SwiftUI
 
-public struct HomeView: View {
-    @Bindable public var store: StoreOf<HomeReducer>
+public struct NewsView: View {
+    @Bindable public var store: StoreOf<NewsReducer>
 
     @Namespace private var heroNamespace
     @State private var showDetailContent: Bool = false
 
-    public init(store: StoreOf<HomeReducer>) {
+    public init(store: StoreOf<NewsReducer>) {
         self.store = store
     }
 
@@ -87,7 +87,7 @@ public struct HomeView: View {
                 case .content:
                     Color.black.ignoresSafeArea()
 
-                    feedScrollView
+                    newsScrollView
 
                     heroDetailOverlay
                 }
@@ -98,7 +98,7 @@ public struct HomeView: View {
         }
     }
 
-    private var feedScrollView: some View {
+    private var newsScrollView: some View {
         let films: IdentifiedArrayOf<Film> = store.films
 
         let selectedFilmID: Int? = {
@@ -110,7 +110,7 @@ public struct HomeView: View {
         return ScrollView {
             LazyVStack(spacing: 0) {
                 ForEach(films, id: \.id) { film in
-                    FilmRow(
+                    NewsRow(
                         film: film,
                         selectedFilmID: selectedFilmID,
                         onTap: {
@@ -156,13 +156,13 @@ public struct HomeView: View {
         IfLetStore(
             store.scope(
                 state: \.$destination,
-                action: HomeReducer.Action.destination
+                action: NewsReducer.Action.destination
             )
         ) { destinationStore in
-            SwitchStore(destinationStore) { initialState in
+            SwitchStore(destinationStore) { _ in
                 CaseLet(
-                    /HomeReducer.Destination.State.filmDetail,
-                    action: HomeReducer.Destination.Action.filmDetail
+                    /NewsReducer.Destination.State.filmDetail,
+                    action: NewsReducer.Destination.Action.filmDetail
                 ) { filmDetailStore in
                     FilmDetailViewWrapper(
                         store: filmDetailStore,
@@ -188,7 +188,7 @@ public struct HomeView: View {
 
 // MARK: - Row
 
-private struct FilmRow: View {
+private struct NewsRow: View {
     let film: Film
     let selectedFilmID: Int?
     let onTap: () -> Void
@@ -197,7 +197,7 @@ private struct FilmRow: View {
     var body: some View {
         VStack(spacing: 0) {
             Button(action: onTap) {
-                HomeHeroCardView(film: film, namespace: namespace)
+                NewsHeroCardView(film: film, namespace: namespace)
                     .opacity(selectedFilmID == film.id ? 0.0 : 1.0)
             }
             .buttonStyle(.plain)
@@ -209,34 +209,28 @@ private struct FilmRow: View {
     }
 }
 
-// MARK: - Home Hero Card
+// MARK: - News Hero Card (owned here)
 
-public struct HomeHeroCardView: View {
-    public let film: Film
-    public let namespace: Namespace.ID
+private struct NewsHeroCardView: View {
+    let film: Film
+    let namespace: Namespace.ID
 
-    public init(film: Film, namespace: Namespace.ID) {
-        self.film = film
-        self.namespace = namespace
-    }
-
-    public var body: some View {
+    var body: some View {
         ZStack(alignment: .bottomLeading) {
             heroImage
                 .matchedGeometryEffect(id: "hero-image-\(film.id)", in: namespace)
 
             LinearGradient(
                 gradient: Gradient(colors: [
-                    Color.black.opacity(0.1),
-                    Color.black.opacity(0.6),
-                    Color.black.opacity(0.9)
+                    Color.black.opacity(0.08),
+                    Color.black.opacity(0.55),
+                    Color.black.opacity(0.92)
                 ]),
                 startPoint: .top,
                 endPoint: .bottom
             )
 
-            // ✅ Home owns its overlay logic.
-            HomeHeroCardOverlay(film: film)
+            NewsHeroCardOverlay(film: film)
                 .padding(.horizontal, 24)
                 .padding(.vertical, 32)
         }
@@ -246,12 +240,9 @@ public struct HomeHeroCardView: View {
     }
 
     private var heroImage: some View {
-        // ✅ Home owns thumbnail selection:
-        // - News: prefer thumbnail (often "article" style imagery)
-        // - Films: prefer background image (cinematic)
-        let url: URL? = film.isNews
-            ? (film.thumbnailURL ?? film.backgroundImageURL)
-            : (film.backgroundImageURL ?? film.thumbnailURL)
+        // ✅ NewsView owns thumbnail selection.
+        // For news, prefer thumbnail first (it’s usually the “article image”).
+        let url: URL? = film.thumbnailURL ?? film.backgroundImageURL
 
         return Group {
             if let url {
@@ -265,7 +256,7 @@ public struct HomeHeroCardView: View {
     }
 }
 
-private struct HomeHeroCardOverlay: View {
+private struct NewsHeroCardOverlay: View {
     let film: Film
 
     var body: some View {
@@ -285,11 +276,9 @@ private struct HomeHeroCardOverlay: View {
                         }
 
                         Text(film.title.uppercased())
-                            .font(.system(size: 24, weight: .heavy))
+                            .font(.system(size: 20, weight: .heavy))
                             .foregroundColor(.white)
-                            .minimumScaleFactor(0.8)
                             .multilineTextAlignment(.center)
-                            .lineLimit(3)
 
                         if let synopsis = film.synopsis, !synopsis.isEmpty {
                             Text(synopsis)
@@ -311,17 +300,9 @@ private struct HomeHeroCardOverlay: View {
     private var metadataLine: String? {
         var parts: [String] = []
 
-        if film.isNews {
-            if let cat = film.headerCategoryLabel { parts.append(cat) }
-            if let date = film.postDate {
-                parts.append(date.formatted(.dateTime.month(.wide).day().year()))
-            }
-        } else {
-            if let genre = film.genre?.displayName, !genre.isEmpty { parts.append(genre) }
-            if let filmmaker = film.filmmaker, !filmmaker.isEmpty { parts.append(filmmaker) }
-            if let minutes = film.durationMinutes, minutes > 0 {
-                parts.append(minutes == 1 ? "1 MINUTE" : "\(minutes) MINUTES")
-            }
+        if let cat = film.headerCategoryLabel { parts.append(cat) }
+        if let date = film.postDate {
+            parts.append(date.formatted(.dateTime.month(.wide).day().year()))
         }
 
         return parts.isEmpty ? nil : parts.joined(separator: " / ")
@@ -348,60 +329,67 @@ private struct FilmDetailViewWrapper: View {
 
 // MARK: - Previews
 
-#Preview("HomeView - Content") {
-    HomeView(
+#Preview("NewsView - Content") {
+    NewsView(
         store: Store(
-            initialState: HomeReducer.State(
-                viewDisplayMode: .content,
-                films: IdentifiedArray(uniqueElements: SOTWSeed.sampleFilms)
-            )
+            initialState: {
+                var s = NewsReducer.State()
+                s.viewDisplayMode = .content
+                s.films = IdentifiedArray(uniqueElements: SOTWSeed.sampleFilms.filter { $0.isNews })
+                s.canLoadMore = true
+                s.isLoadingPage = false
+                return s
+            }()
         ) {
-            HomeReducer()
+            NewsReducer()
         } withDependencies: {
             $0.feedClient.loadPage = { _, _, _ in
-                return SOTWSeed.sampleFilms
+                return SOTWSeed.sampleFilms.filter { $0.isNews }
             }
         }
     )
 }
 
-#Preview("HomeView - Loading") {
-    HomeView(
+#Preview("NewsView - Loading") {
+    NewsView(
         store: Store(
-            initialState: HomeReducer.State(
-                viewDisplayMode: .loading,
-                films: IdentifiedArray(uniqueElements: SOTWSeed.sampleFilms)
-            )
+            initialState: {
+                var s = NewsReducer.State()
+                s.viewDisplayMode = .loading
+                return s
+            }()
         ) {
-            HomeReducer()
+            NewsReducer()
         }
     )
 }
 
-#Preview("HomeView - Empty") {
-    HomeView(
+#Preview("NewsView - Empty") {
+    NewsView(
         store: Store(
-            initialState: HomeReducer.State(
-                viewDisplayMode: .empty(message: "No films found."),
-                films: IdentifiedArray(uniqueElements: SOTWSeed.sampleFilms),
-                canLoadMore: false
-            )
+            initialState: {
+                var s = NewsReducer.State()
+                s.viewDisplayMode = .empty(message: "No news found.")
+                s.canLoadMore = false
+                return s
+            }()
         ) {
-            HomeReducer()
+            NewsReducer()
         }
     )
 }
 
-#Preview("HomeView - Error") {
-    HomeView(
+#Preview("NewsView - Error") {
+    NewsView(
         store: Store(
-            initialState: HomeReducer.State(
-                viewDisplayMode: .error(message: "Network request failed."),
-                films: IdentifiedArray(uniqueElements: SOTWSeed.sampleFilms),
-                canLoadMore: false
-            )
+            initialState: {
+                var s = NewsReducer.State()
+                s.viewDisplayMode = .error(message: "Network request failed.")
+                s.canLoadMore = false
+                return s
+            }()
         ) {
-            HomeReducer()
+            NewsReducer()
         }
     )
 }
