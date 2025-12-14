@@ -256,6 +256,7 @@ public struct HomeHeroCardView: View {
 
             // Text content
             FilmHeroTextOverlay(
+                isPlaying: false,
                 film: film,
                 alignment: .center
             )

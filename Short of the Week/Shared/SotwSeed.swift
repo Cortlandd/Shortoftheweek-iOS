@@ -32,6 +32,64 @@ enum SOTWSeed {
         <p>If your text doesn’t wrap correctly between those two images, your parser/rendering still has a “no-break” character or a forced-width view somewhere.</p>
         """
 
+        let oscarContendersNewsContent = #"""
+        <p><strong>This is the third of our series covering the Oscar® 2026 race.</strong> Each week before the shortlist voting commences on December 8th we preview a short film category and its eligible films. Previously, we covered <a href="https://www.shortoftheweek.com/news/surveying-oscar-2026-contenders-animated-short-subject/">Animated Shorts</a> and <a href="https://www.shortoftheweek.com/news/surveying-the-oscar-2026-contenders-documentary-short-film/">Documentary Shorts</a>.</p>
+
+        <p>At last, Live Action. The category has been a punching bag for me in recent years, as it has been the site of some of the Academy’s most head-scratching decisions. If I’m being grumpy, I peruse this <a href="https://www.shortverse.com/collections/oscarr-2026-contenders-live-action-short-subject?page=1&sort=view_count_desc">enormous 207-film longlist</a> and see numerous examples of cliché premises from relatively unheralded sources.</p>
+
+        <p>I don’t have inside knowledge of how things have changed in recent years. But it seems the ever-expanding lineup of qualifying festivals has produced a contender pool that is <em>extremely</em> culturally and geographically diverse (which rocks), but also lets a lot of marginal work through.</p>
+
+        <p>Why should we care? Absent the institutional influence that Documentary and Animation possess, this overstuffed free-for-all benefits deep-pocketed campaigns and muddies the waters.</p>
+
+        <p>This is an exciting and optimistic time, though, so I am sheepish about beginning this preview with complaints. Overstuffed as it is, there are many great shorts here.</p>
+
+        <div class="mceTemp">
+          <a href="https://www.shortverse.com/collections/oscarr-2026-contenders-live-action-short-subject?page=1&sort=view_count_desc">
+            <img src="https://www.shortoftheweek.com/wp-content/uploads/2025/12/Live-Action-640x637.jpg" />
+          </a>
+        </div>
+
+        <h3 style="text-align:center;">Meet The Online Films</h3>
+
+        <p>Respecting our founding mission, let’s begin by introducing films you can watch right now. As of publishing, <a href="https://www.shortverse.com/collections/oscarr-2026-contenders-live-action-short-subject?page=1&release_status=50">20 films are available for streaming</a>.</p>
+
+        <ul>
+          <li><em><a href="https://www.shortoftheweek.com/2025/04/14/beyond-failure/">Beyond Failure</a></em> – An unapologetically indie short with relentless deadpan humor.</li>
+          <li><em><a href="https://www.shortoftheweek.com/2025/01/16/border-hopper/">Border Hopper</a></em> – A Sundance hit tackling the US immigration system.</li>
+          <li><em><a href="https://www.shortoftheweek.com/2025/11/18/daly-city/">Daly City</a></em> – A sensitive story about belonging.</li>
+          <li><em><a href="https://www.shortoftheweek.com/2025/11/22/two-people-exchanging-saliva/">Deux personnes échangeant de la salive</a></em> – A dystopian absurdist triumph.</li>
+          <li><em><a href="https://www.shortoftheweek.com/2025/11/05/single-residence-occupancy/">Single Residence Occupancy</a></em> – A deeply moving family drama.</li>
+          <li><em><a href="https://www.shortoftheweek.com/2025/12/05/susana/">SUSANA</a></em> – An open-hearted travel film.</li>
+        </ul>
+
+        <h3 style="text-align:center;">Festival Darlings</h3>
+
+        <p>A spotlight on films we really like that have had stellar runs on the fest circuit.</p>
+
+        <ul>
+          <li><em><a href="https://www.shortverse.com/films/amarela">Amarela</a></em></li>
+          <li><em><a href="https://www.shortverse.com/films/im-glad-youre-dead-now">I'm Glad You're Dead Now</a></em></li>
+          <li><em><a href="https://www.shortverse.com/films/one-day-this-kid">One Day This Kid</a></em></li>
+          <li><em><a href="https://www.shortverse.com/films/talk-me">Talk Me</a></em></li>
+          <li><em><a href="https://www.shortverse.com/films/vox-humana">Vox Humana</a></em></li>
+        </ul>
+
+        <h3 style="text-align:center;">Based on a True Story</h3>
+
+        <ul>
+          <li><em><a href="https://www.shortverse.com/films/extremist">Extremist</a></em></li>
+          <li><em><a href="https://www.shortverse.com/films/flight-182">Flight 182</a></em></li>
+          <li><em><a href="https://www.shortverse.com/films/jeffrey-epstein-bad-pedophile">Jeffrey Epstein: Bad Pedophile</a></em></li>
+          <li><em><a href="https://www.shortverse.com/films/rock-paper-scissors">Rock Paper Scissors</a></em></li>
+        </ul>
+
+        <p style="text-align:center;">***</p>
+
+        <p>Thanks for following our lengthy previews of the three categories. Good luck to all the qualified films as voting begins!</p>
+        """#
+
+
+
         // MARK: - Authors
 
         let marianaRekka = FeedAuthor(
@@ -64,6 +122,16 @@ enum SOTWSeed {
             email: nil
         )
         
+        let jasonSondhi = FeedAuthor(
+            displayName: "Jason Sondhi",
+            firstName: "Jason",
+            lastName: "Sondhi",
+            id: "3",
+            company: "Short of the Week LLC",
+            occupation: nil,
+            email: "sondhi@shortoftheweek.com"
+        )
+
         // MARK: - Country
         
         let novacancyCountry = FeedTerm(
@@ -91,6 +159,25 @@ enum SOTWSeed {
             color: nil,
             displayName: "Drama",
             slug: "drama"
+        )
+
+        // MARK: - Category
+        
+        let oscarCoverageCategory = FeedTerm(
+            id: 1354,
+            color: "#DB3377",
+            displayName: "Oscar Coverage",
+            slug: "oscar-coverage"
+        )
+
+        let oscarCoverageCategories = FeedTermCollection(
+            count: 1,
+            limit: 10,
+            page: 1,
+            total: 0,
+            pageMax: 0,
+            links: nil,
+            data: [oscarCoverageCategory]
         )
 
         // MARK: - Feed items (FeedItem, not custom seed structs)
@@ -184,8 +271,39 @@ enum SOTWSeed {
             type: "video",
             topic: nil
         )
+        
+        let oscarContendersNewsItem = FeedItem(
+            id: 41710,
+            postAuthor: "3",
+            postContentHTML: oscarContendersNewsContent,
+            postDateString: "2025-12-07 10:00:00",
+            postTitle: "Surveying the Oscar 2026 Contenders: Live Action Short Film",
+            postName: "surveying-oscar-2026-contenders-live-action-short-film",
+            backgroundImage: "//static.shortoftheweek.com/wp-content/uploads/2025/04/Beyond-Failure-Marissa-Losoya-03.jpeg",
+            categories: oscarCoverageCategories,
+            author: jasonSondhi,
+            country: nil,
+            filmmaker: nil,
+            labels: nil,
+            links: nil,
+            durationString: nil,
+            genre: nil,
+            playLink: nil,
+            playLinkTarget: nil,
+            postExcerpt: "The third of our series covering the Oscar® 2026 race.",
+            production: nil,
+            style: nil,
+            subscriptions: nil,
+            tags: nil,
+            textColor: "light",
+            twitterText: nil,
+            thumbnail: "//static.shortoftheweek.com/wp-content/uploads/2025/04/Beyond-Failure-Marissa-Losoya-03-640x346.jpeg",
+            type: "news",
+            topic: nil
+        )
 
-        let items = [noVacancyItem, helloStrangerItem, sunshineCityItem]
+
+        let items = [noVacancyItem, helloStrangerItem, sunshineCityItem, oscarContendersNewsItem]
         return items.map(Film.init(feedItem:))
     }()
 }

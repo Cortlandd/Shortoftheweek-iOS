@@ -11,6 +11,7 @@ public struct Film: Equatable, Identifiable, Sendable {
     public enum Kind: String, Equatable, Sendable {
         case video
         case article
+        case news
         case unknown
     }
 
@@ -55,10 +56,19 @@ extension Film {
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
 
         id = feedItem.id
-        kind = Kind(rawValue: feedItem.type) ?? .unknown
-        title = feedItem.postTitle
+        let t = feedItem.type.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if t == "news" {
+            self.kind = .news
+        } else if t == "video" || self.playURL != nil {
+            self.kind = .video
+        } else if t == "article" {
+            self.kind = .article
+        } else {
+            self.kind = .unknown
+        }
+        title = feedItem.postTitle.htmlDecoded
         slug = feedItem.postName
-        synopsis = feedItem.postExcerpt
+        synopsis = feedItem.postExcerpt?.htmlDecoded
         postDate = formatter.date(from: feedItem.postDateString)
 
         backgroundImageURL = feedItem.backgroundImage?.canonicalSOTWURL()
@@ -80,6 +90,18 @@ extension Film {
         textColor = feedItem.textColor
 
         articleHTML = feedItem.postContentHTML
+        playURL = feedItem.playLink?.canonicalSOTWURL()
+        textColor = feedItem.textColor
+    }
+}
+
+extension Film {
+    var isNews: Bool { kind.rawValue.lowercased() == "news" }
+
+    var headerCategoryLabel: String? {
+        categories.first?.displayName?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .uppercased()
     }
 }
 

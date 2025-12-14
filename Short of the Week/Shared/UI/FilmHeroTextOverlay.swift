@@ -60,11 +60,11 @@ public struct FilmHeroTextOverlay: View {
                             Text(film.title.uppercased())
                                 .font(.system(size: 24, weight: .heavy))
                                 .foregroundColor(.white)
-                                .lineLimit(2)
+                                .italic()
                                 .minimumScaleFactor(0.8)
                                 .multilineTextAlignment(alignment == .center ? .center : .leading)
 
-                            if let synopsis = film.synopsis, !synopsis.isEmpty {
+                            if let synopsis = film.synopsis, !synopsis.isEmpty, !film.isNews {
                                 Text(synopsis)
                                     .font(.system(size: 14, weight: .regular))
                                     .foregroundColor(.white.opacity(0.9))
@@ -72,35 +72,49 @@ public struct FilmHeroTextOverlay: View {
                                     .multilineTextAlignment(alignment == .center ? .center : .leading)
                             }
                         }
-                        // This is the key: don't let the text container become "infinite".
-                        // Keeping a reasonable max width produces a centered, poster-like layout.
                         .frame(maxWidth: alignment == .center ? 420 : .infinity, alignment: alignment == .center ? .center : .leading)
 
                         if alignment == .center {
                             Spacer(minLength: 0)
                         }
                     }
-                    Spacer() // Pushes content up
+                    Spacer()
                 }
             )
     }
     
+    private var dateLabel: String? {
+        guard let d = film.postDate else { return nil }
+        return d.formatted(.dateTime.month(.wide).day().year())
+    }
+    
     private var metadataLine: String? {
         var parts: [String] = []
+        
+        if film.isNews {
+            if let cat = film.headerCategoryLabel {
+                parts.append(cat)
+            }
+            
+            if let date = film.postDate {
+                let d = date.formatted(.dateTime.month(.wide).day().year())
+                parts.append(d)
+            }
+        } else {
+            if let genre = film.genre?.displayName, !genre.isEmpty {
+                parts.append(genre)
+            }
 
-        if let genre = film.genre?.displayName, !genre.isEmpty {
-            parts.append(genre)
+            if let filmmaker = film.filmmaker, !filmmaker.isEmpty {
+                parts.append(filmmaker)
+            }
+
+            if let minutes = film.durationMinutes, minutes > 0 {
+                let label = minutes == 1 ? "1 MINUTE" : "\(minutes) MINUTES"
+                parts.append(label)
+            }
+
         }
-
-        if let filmmaker = film.filmmaker, !filmmaker.isEmpty {
-            parts.append(filmmaker)
-        }
-
-        if let minutes = film.durationMinutes, minutes > 0 {
-            let label = minutes == 1 ? "1 MINUTE" : "\(minutes) MINUTES"
-            parts.append(label)
-        }
-
         return parts.isEmpty ? nil : parts.joined(separator: " / ")
     }
 }

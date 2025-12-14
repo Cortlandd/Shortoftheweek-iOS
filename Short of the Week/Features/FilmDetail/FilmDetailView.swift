@@ -43,7 +43,9 @@ public struct FilmDetailView: View {
                     VStack(spacing: 0) {
                         heroArea
                         
-                        creditsHeader
+                        if store.film.kind == .video {
+                            creditsHeader
+                        }
 
                         if showDetailContent {
                             detailBody
@@ -94,19 +96,11 @@ public struct FilmDetailView: View {
 
     private var heroArea: some View {
         GeometryReader { proxy in
-            ZStack(alignment: .bottomLeading) {
+            ZStack {
                 heroImage
                     .frame(width: proxy.size.width, height: proxy.size.height)
                     .clipped()
                     .matchedGeometryEffect(id: "hero-image-\(store.film.id)", in: namespace)
-
-                // embedded video
-                if showDetailContent, let url = store.film.playURL, isVideoRevealed {
-                    FilmVideoEmbedView(embedURL: url)
-                        .transition(.opacity)
-                        .zIndex(0)
-                        .allowsHitTesting(true)
-                }
 
                 // gradient overlay
                 LinearGradient(
@@ -119,21 +113,41 @@ public struct FilmDetailView: View {
                     endPoint: .bottom
                 )
                 .allowsHitTesting(false)
-
-                // text + play button overlay
-                if showDetailContent, store.film.playURL != nil, !isVideoRevealed {
+                
+                if store.film.isNews {
+                    // Centered overlay like the website hero.
                     FilmHeroTextOverlay(
-                        isPlaying: true,
+                        isPlaying: false,
                         film: store.film,
                         alignment: .center
                     )
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            isVideoRevealed = true
-                        }
-                    }
+                    .padding(.horizontal, 18)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                     .zIndex(2)
+                } else {
+                    // embedded video
+                    if showDetailContent, let url = store.film.playURL, isVideoRevealed {
+                        FilmVideoEmbedView(embedURL: url)
+                            .transition(.opacity)
+                            .zIndex(0)
+                            .allowsHitTesting(true)
+                    }
+
+                    // text + play button overlay
+                    if showDetailContent, store.film.playURL != nil, !isVideoRevealed {
+                        FilmHeroTextOverlay(
+                            isPlaying: true,
+                            film: store.film,
+                            alignment: .center
+                        )
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            withAnimation(.easeOut(duration: 0.2)) {
+                                isVideoRevealed = true
+                            }
+                        }
+                        .zIndex(2)
+                    }
                 }
             }
         }
@@ -244,6 +258,10 @@ public struct FilmDetailView: View {
 
 #Preview("FilmDetailView – During Transition (content hidden)") {
     previewFilmDetail(index: 0, showDetail: false)
+}
+
+#Preview("FilmDetailView – News Article") {
+    previewFilmDetail(index: 3, showDetail: true)
 }
 
 @MainActor
