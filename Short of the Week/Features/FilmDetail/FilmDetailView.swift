@@ -76,6 +76,7 @@ public struct FilmDetailView: View {
                 .scrollIndicators(.hidden)
                 .ignoresSafeArea(edges: .top)
             }
+            .toolbar(.hidden, for: .tabBar)
             .onAppear { store.send(.onAppear) }
             .onChange(of: store.film.id) { _, _ in
                 isVideoRevealed = false
@@ -112,6 +113,7 @@ public struct FilmDetailView: View {
                 if store.film.isNews {
                     FilmDetailNewsHeroOverlay(film: store.film)
                         .padding(.horizontal, 18)
+                        .padding(.top, 32)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .zIndex(2)
                 } else {

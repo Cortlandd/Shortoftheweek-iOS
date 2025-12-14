@@ -85,7 +85,6 @@ public struct HomeView: View {
                     .background(Color.white)
 
                 case .content:
-                    Color.black.ignoresSafeArea()
 
                     feedScrollView
 

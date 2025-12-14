@@ -27,11 +27,15 @@ struct RootView: View {
                           .navigationBarTitleDisplayMode(.inline)
                           .toolbar {
                             ToolbarItem(placement: .principal) {
-                                Image("sotwLogoTransparent")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(height: 50)
-                                    .accessibilityLabel("Short of the Week")
+                                if !store.home.isShowingDetail {
+                                    Image("sotwLogoTransparent")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(height: 50)
+                                        .accessibilityLabel("Short of the Week")
+                                } else {
+                                    EmptyView()
+                                }
                             }
                           }
                     }
@@ -59,6 +63,13 @@ struct RootView: View {
       .task { await store.send(.task).finish() }
       .animation(.easeInOut(duration: 0.35), value: store.showSplash)
     }
+  }
+}
+
+extension HomeReducer.State {
+  var isShowingDetail: Bool {
+    if case .filmDetail = destination { return true }
+    return false
   }
 }
 
