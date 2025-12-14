@@ -15,13 +15,35 @@ struct ArticleBlocksView: View {
         VStack(alignment: .leading, spacing: 14) {
             ForEach(Array(blocks.enumerated()), id: \.offset) { _, block in
                 switch block {
-                case .paragraph(let attr):
-                    Text(attr)
+                case .heading(let level, let text):
+                    Text(text)
+                        .font(.system(size: headingSize(for: level), weight: .semibold))
+                        .foregroundStyle(Color(hex: "#272E2C"))
+                        .padding(.top, level <= 2 ? 10 : 6)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                case .paragraph(let text):
+                    Text(text)
                         .foregroundStyle(Color(hex: "#272E2C"))
                         .multilineTextAlignment(.leading)
                         .lineSpacing(3)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .fixedSize(horizontal: false, vertical: true)
+
+                case .bulletedList(let bullets):
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(Array(bullets.enumerated()), id: \.offset) { _, bullet in
+                            HStack(alignment: .top, spacing: 8) {
+                                Text("•")
+                                    .foregroundStyle(Color(hex: "#272E2C"))
+                                Text(bullet)
+                                    .foregroundStyle(Color(hex: "#272E2C"))
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
 
                 case .image(let url, let caption):
                     VStack(alignment: .leading, spacing: 8) {
@@ -38,13 +60,22 @@ struct ArticleBlocksView: View {
                                 .font(.footnote)
                                 .foregroundStyle(Color(hex: "#272E2C").opacity(0.7))
                                 .italic()
-                                .multilineTextAlignment(.leading)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .multilineTextAlignment(.center)
+                                .frame(maxWidth: .infinity, alignment: .center)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
                 }
             }
+        }
+    }
+    
+    private func headingSize(for level: Int) -> CGFloat {
+        switch level {
+        case 1: return 28
+        case 2: return 22
+        case 3: return 18
+        default: return 16
         }
     }
 }
