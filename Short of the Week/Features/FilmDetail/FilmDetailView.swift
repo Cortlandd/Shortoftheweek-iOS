@@ -78,6 +78,7 @@ public struct FilmDetailView: View {
                 .scrollIndicators(.hidden)
                 .ignoresSafeArea(edges: .top)
             }
+            .toolbarVisibility(.hidden, for: .tabBar)
             .onAppear { store.send(.onAppear) }
             .onChange(of: store.film.id) { _, _ in
                 // New film selected: reset the inline player.

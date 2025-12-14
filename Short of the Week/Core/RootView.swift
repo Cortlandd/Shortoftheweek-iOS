@@ -20,20 +20,24 @@ struct RootView: View {
             .transition(.opacity)
             .zIndex(1)
         } else {
-          NavigationStack {
-            HomeView(store: store.scope(state: \.home, action: \.home))
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                  ToolbarItem(placement: .principal) {
-                      Image("sotwLogoTransparent")
-                          .resizable()
-                          .scaledToFit()
-                          .frame(height: 50)
-                          .accessibilityLabel("Short of the Week")
-                  }
+            TabView(selection: $store.selectedTab.sending(\.selectTab)) {
+                Tab("Home", systemImage: "house.fill", value: RootReducer.Tab.home) {
+                    NavigationStack {
+                      HomeView(store: store.scope(state: \.home, action: \.home))
+                          .navigationBarTitleDisplayMode(.inline)
+                          .toolbar {
+                            ToolbarItem(placement: .principal) {
+                                Image("sotwLogoTransparent")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 50)
+                                    .accessibilityLabel("Short of the Week")
+                            }
+                          }
+                    }
                 }
-          }
-          .transition(.opacity)
+            }
+            .transition(.opacity)
         }
       }
       .background(Color(hex: "#272E2C").opacity(0.92))
