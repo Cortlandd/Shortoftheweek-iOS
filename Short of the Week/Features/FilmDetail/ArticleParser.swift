@@ -7,7 +7,7 @@
 import Foundation
 import SwiftUI
 
-enum ArticleBlock: Equatable {
+public enum ArticleBlock: Equatable {
     case heading(level: Int, String)
     case paragraph(String)
     case bulletedList([String])

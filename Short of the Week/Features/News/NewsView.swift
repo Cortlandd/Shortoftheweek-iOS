@@ -218,7 +218,7 @@ private struct NewsHeroCardView: View {
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             heroImage
-                .matchedGeometryEffect(id: "hero-image-\(film.id)", in: namespace)
+                .matchedGeometryEffect(id: "hero-image-\(film.id)", in: namespace, isSource: true)
 
             LinearGradient(
                 gradient: Gradient(colors: [

@@ -26,7 +26,7 @@ struct RootReducer {
     }
 
     enum Action: BindableAction {
-        case task
+        case onAppear
         case selectTab(RootReducer.Tab)
         case splashFinished
         case home(HomeReducer.Action)
@@ -42,11 +42,8 @@ struct RootReducer {
 
         Reduce { state, action in
             switch action {
-            case .task:
-                return .run { send in
-                  try? await Task.sleep(nanoseconds: 900_000_000) // adjust
-                  await send(.splashFinished)
-                }
+            case .onAppear:
+                return .none
             case .selectTab(let tab):
                 state.selectedTab = tab
                 return .none

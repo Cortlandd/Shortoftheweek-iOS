@@ -21,6 +21,9 @@ public struct FilmDetailReducer {
         public var isUpdatingBookmark: Bool = false
         public var errorMessage: String?
         
+        var blocks: [ArticleBlock] = []
+        var isParsing = false
+        
         public init(
             film: Film,
             isBookmarked: Bool = false,
@@ -39,13 +42,25 @@ public struct FilmDetailReducer {
         case bookmarkTapped
         case clearErrorTapped
         case detailDismissed
+        case parsedBlocks([ArticleBlock])
     }
     
     public var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                return .none
+                state.isParsing = true
+                let html = state.film.articleHTML.wrappingNormalized
+                return .run { send in
+                    let blocks = await Task.detached(priority: .userInitiated) {
+                        await ArticleParser.parse(html)
+                    }.value
+                    await send(.parsedBlocks(blocks))
+                }
+            case .parsedBlocks(let blocks):
+              state.isParsing = false
+              state.blocks = blocks
+              return .none
             case .bookmarkTapped:
                 return .none
             case .detailDismissed:

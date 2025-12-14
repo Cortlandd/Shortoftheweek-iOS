@@ -97,7 +97,7 @@ public struct FilmDetailView: View {
                 heroImage
                     .frame(width: proxy.size.width, height: proxy.size.height)
                     .clipped()
-                    .matchedGeometryEffect(id: "hero-image-\(store.film.id)", in: namespace)
+                    .matchedGeometryEffect(id: "hero-image-\(store.film.id)", in: namespace, isSource: false)
 
                 LinearGradient(
                     gradient: Gradient(colors: [
@@ -253,10 +253,7 @@ public struct FilmDetailView: View {
                     .padding(.top, 4)
             }
 
-            let normalizedHTML = store.film.articleHTML.wrappingNormalized
-            let blocks = ArticleParser.parse(normalizedHTML)
-
-            ArticleBlocksView(blocks: blocks)
+            //ArticleBlocksView(blocks: store.blocks)
 
             if let error = store.errorMessage {
                 Text(error)

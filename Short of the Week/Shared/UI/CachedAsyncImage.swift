@@ -46,8 +46,13 @@ struct CachedAsyncImage<Placeholder: View>: View {
             do {
                 let request = NetworkSession.request(url: url)
                 let (data, _) = try await NetworkSession.shared.data(for: request)
-                if let uiImage = UIImage(data: data) {
-                    self.image = Image(uiImage: uiImage)
+                let uiImage = await Task.detached {
+                    UIImage(data: data)
+                }.value
+                if let uiImage {
+                    await MainActor.run {
+                        self.image = Image(uiImage: uiImage)
+                    }
                 }
             } catch {
                 // Fail silently: placeholder remains.

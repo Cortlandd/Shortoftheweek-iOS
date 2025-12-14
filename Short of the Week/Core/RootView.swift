@@ -15,53 +15,48 @@ struct RootView: View {
   var body: some View {
     WithPerceptionTracking {
       ZStack {
-        if store.showSplash {
-          SplashView()
-            .transition(.opacity)
-            .zIndex(1)
-        } else {
-            TabView(selection: $store.selectedTab.sending(\.selectTab)) {
-                Tab("Home", systemImage: "house.fill", value: RootReducer.Tab.home) {
-                    NavigationStack {
-                      HomeView(store: store.scope(state: \.home, action: \.home))
-                          .navigationBarTitleDisplayMode(.inline)
-                          .toolbar {
-                            ToolbarItem(placement: .principal) {
-                                if !store.home.isShowingDetail {
-                                    Image("sotwLogoTransparent")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(height: 50)
-                                        .accessibilityLabel("Short of the Week")
-                                } else {
-                                    EmptyView()
-                                }
-                            }
+          TabView(selection: $store.selectedTab.sending(\.selectTab)) {
+              Tab("Home", systemImage: "house.fill", value: RootReducer.Tab.home) {
+                  NavigationStack {
+                    HomeView(store: store.scope(state: \.home, action: \.home))
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                          ToolbarItem(placement: .principal) {
+                              if !store.home.isShowingDetail {
+                                  Image("sotwLogoTransparent")
+                                      .resizable()
+                                      .scaledToFit()
+                                      .frame(height: 50)
+                                      .accessibilityLabel("Short of the Week")
+                              } else {
+                                  EmptyView()
+                              }
                           }
+                        }
+                  }
+              }
+              Tab("News", systemImage: "newspaper.fill", value: RootReducer.Tab.news) {
+                NavigationStack {
+                  NewsView(store: store.scope(state: \.news, action: \.news))
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                      ToolbarItem(placement: .principal) {
+                        Image("newsBanner")
+                          .resizable()
+                          .scaledToFit()
+                          .frame(height: 50)
+                          .accessibilityLabel("News Page")
+                      }
                     }
                 }
-                Tab("News", systemImage: "newspaper.fill", value: RootReducer.Tab.news) {
-                  NavigationStack {
-                    NewsView(store: store.scope(state: \.news, action: \.news))
-                      .navigationBarTitleDisplayMode(.inline)
-                      .toolbar {
-                        ToolbarItem(placement: .principal) {
-                          Image("newsBanner")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 50)
-                            .accessibilityLabel("News Page")
-                        }
-                      }
-                  }
-                }
-            }
-            .transition(.opacity)
-        }
+              }
+          }
+          .transition(.opacity)
       }
       .background(Color(hex: "#272E2C").opacity(0.92))
-      .task { await store.send(.task).finish() }
-      .animation(.easeInOut(duration: 0.35), value: store.showSplash)
+      .onAppear {
+          store.send(.onAppear)
+      }
     }
   }
 }
