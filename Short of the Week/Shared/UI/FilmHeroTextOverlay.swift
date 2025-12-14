@@ -50,7 +50,7 @@ public struct FilmHeroTextOverlay: View {
 
                             if let metadataLine {
                                 Text(metadataLine.uppercased())
-                                    .font(.system(size: 11, weight: .semibold))
+                                    .font(.system(size: 11, weight: .bold))
                                     .kerning(1.2)
                                     .foregroundColor(.white.opacity(0.9))
                                     .multilineTextAlignment(alignment == .center ? .center : .leading)
@@ -60,6 +60,7 @@ public struct FilmHeroTextOverlay: View {
                             Text(film.title.uppercased())
                                 .font(.system(size: 24, weight: .heavy))
                                 .foregroundColor(.white)
+                                .padding(.bottom, film.isNews ? 8 : 0)
                                 .italic()
                                 .minimumScaleFactor(0.8)
                                 .multilineTextAlignment(alignment == .center ? .center : .leading)
@@ -68,7 +69,14 @@ public struct FilmHeroTextOverlay: View {
                                 Text(synopsis)
                                     .font(.system(size: 14, weight: .regular))
                                     .foregroundColor(.white.opacity(0.9))
-                                    .lineLimit(3)
+                                    .multilineTextAlignment(alignment == .center ? .center : .leading)
+                            }
+
+                            if let author = film.author, film.isNews {
+                                Text(author.displayName.uppercased())
+                                    .font(.system(size: 14, weight: .bold))
+                                    .kerning(1.2)
+                                    .foregroundColor(.white.opacity(0.9))
                                     .multilineTextAlignment(alignment == .center ? .center : .leading)
                             }
                         }
