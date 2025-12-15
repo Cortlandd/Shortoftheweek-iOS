@@ -42,6 +42,7 @@ public struct FilmDetailView: View {
                         heroArea
                         
                         if store.film.kind == .video {
+                            topicHeader
                             creditsHeader
                         }
 
@@ -110,9 +111,11 @@ public struct FilmDetailView: View {
     private var heroArea: some View {
         GeometryReader { proxy in
             ZStack {
-                heroImage
-                    .frame(width: proxy.size.width, height: proxy.size.height)
-                    .clipped()
+                if !isVideoRevealed {
+                    heroImage
+                        .frame(width: proxy.size.width, height: proxy.size.height)
+                        .clipped()
+                }
                     // Navigation hero transition is now driven by `.navigationTransition(.zoom(...))`
                     // in the presenting view. We intentionally do not use matchedGeometryEffect here.
 
@@ -140,8 +143,10 @@ public struct FilmDetailView: View {
                     if showDetailContent, let url = store.film.playURL, isVideoRevealed {
                         FilmVideoEmbedView(embedURL: url)
                             .transition(.opacity)
-                            .zIndex(0)
+                            .zIndex(2)
+                            .contentShape(Rectangle())
                             .allowsHitTesting(true)
+                            .frame(width: proxy.size.width, height: proxy.size.height)
                     }
 
                     // text + play button overlay
@@ -154,7 +159,7 @@ public struct FilmDetailView: View {
                             }
                         }
                         .padding(.horizontal, 18)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .frame(width: proxy.size.width, height: proxy.size.height)
                         .zIndex(2)
                     }
                 }
@@ -175,30 +180,76 @@ public struct FilmDetailView: View {
             }
         }
     }
+    
+    // MARK: - Topic header
+        
+    private var topicHeader: some View {
+        ZStack(alignment: .center) {
+            HStack(spacing: 4) {
+                if let genre = store.film.genre?.displayName, !genre.isEmpty {
+                    Text(genre.uppercased())
+                        .font(Font.custom("Dom Diagonal W03 Bd", size: 18))
+                        .fontWeight(.bold)
+                        .foregroundStyle(.green.opacity(0.80))
+                }
+                
+                Text("About".uppercased())
+                    .font(Font.custom("Dom Diagonal W03 Bd", size: 18))
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color(hex: "#95A6A1"))
+                
+                if let topic = store.film.topic?.displayName, !topic.isEmpty {
+                    Text(topic.uppercased())
+                        .font(Font.custom("Dom Diagonal W03 Bd", size: 18))
+                        .fontWeight(.bold)
+                        .foregroundStyle(.orange.opacity(0.80))
+                }
+                
+                Text("In".uppercased())
+                    .font(Font.custom("Dom Diagonal W03 Bd", size: 18))
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color(hex: "#95A6A1"))
+                
+                if let style = store.film.style?.displayName, !style.isEmpty {
+                    Text(style.uppercased())
+                        .font(Font.custom("Dom Diagonal W03 Bd", size: 18))
+                        .fontWeight(.bold)
+                        .foregroundStyle(.pink.opacity(0.80))
+                }
+            }
+        }
+        .padding(.vertical, 16)
+        .frame(maxWidth: .infinity)
+        .background(Color(hex: "#647370"))
+        .multilineTextAlignment(.center)
+    }
 
     // MARK: - Credit body
 
     private var creditsHeader: some View {
         VStack(spacing: 6) {
             if let director = store.film.filmmaker, !director.isEmpty {
-                Text("Directed by \(director)")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.92))
-                    .italic()
+                Text("Directed by \(director)".uppercased())
+                    .font(Font.custom("Dom Diagonal W03 Bd", size: 18))
+                    .fontWeight(.bold)
+                    .lineSpacing(2)
+                    .foregroundStyle(Color(hex: "#D7E0DB"))
             }
 
             if let producer = store.film.production, !producer.isEmpty {
-                Text("Produced by \(producer)")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.92))
-                    .italic()
+                Text("Produced by \(producer)".uppercased())
+                    .font(Font.custom("Dom Diagonal W03 Bd", size: 18))
+                    .fontWeight(.bold)
+                    .lineSpacing(2)
+                    .foregroundStyle(Color(hex: "#D7E0DB"))
             }
 
             if let countryName = store.film.country?.displayName, !countryName.isEmpty {
-                Text("Made in \(countryName)")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.92))
-                    .italic()
+                Text("Made in \(countryName)".uppercased())
+                    .font(Font.custom("Dom Diagonal W03 Bd", size: 18))
+                    .fontWeight(.bold)
+                    .lineSpacing(2)
+                    .foregroundStyle(Color(hex: "#D7E0DB"))
             }
         }
         .padding(.vertical, 16)
