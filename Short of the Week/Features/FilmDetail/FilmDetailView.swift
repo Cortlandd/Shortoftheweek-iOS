@@ -89,7 +89,6 @@ public struct FilmDetailView: View {
                 }
                 .toolbarBackground(.hidden, for: .navigationBar)
                 .scrollIndicators(.hidden)
-                .ignoresSafeArea(edges: .top)
             }
             .toolbarVisibility(.hidden, for: .tabBar)
             .onAppear { store.send(.onAppear) }
