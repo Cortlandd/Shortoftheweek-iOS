@@ -111,7 +111,7 @@ public struct HomeView: View {
                     Button {
                         store.send(.loadNextPage)
                     } label: {
-                        Text(store.isLoadingPage ? "LOADING…" : "MORE")
+                        Text(store.isLoadingPage ? "LOADING..." : "MORE")
                             .font(.system(size: 14, weight: .heavy))
                             .foregroundColor(.black)
                             .frame(maxWidth: .infinity)

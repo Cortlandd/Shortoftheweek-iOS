@@ -23,6 +23,7 @@ struct RootReducer {
         var showSplash = true
         var home = HomeReducer.State()
         var news = NewsReducer.State()
+        var search = SearchReducer.State()
     }
 
     enum Action: BindableAction {
@@ -31,6 +32,7 @@ struct RootReducer {
         case splashFinished
         case home(HomeReducer.Action)
         case news(NewsReducer.Action)
+        case search(SearchReducer.Action)
         case binding(BindingAction<State>)
     }
 
@@ -39,6 +41,7 @@ struct RootReducer {
 
         Scope(state: \.home, action: \.home) { HomeReducer() }
         Scope(state: \.news, action: \.news) { NewsReducer() }
+        Scope(state: \.search, action: \.search) { SearchReducer() }
 
         Reduce { state, action in
             switch action {
@@ -52,7 +55,7 @@ struct RootReducer {
                 state.showSplash = false
                 return .none
 
-            case .home, .news:
+            case .home, .news, .search:
                 return .none
             case .binding:
                 return .none

@@ -25,10 +25,10 @@ public struct FeedResponse: Decodable, Sendable {
 }
 
 public struct FeedPageLinks: Decodable, Sendable {
-    let first: URL
-    let last: URL
-    let next: URL
-    let previous: URL
+    let first: URL?
+    let last: URL?
+    let next: URL?
+    let previous: URL?
 }
 
 /// Category / country / style / topic, etc.
@@ -81,9 +81,18 @@ public struct FeedAuthor: Equatable, Decodable, Sendable {
     }
 }
 
-public struct FeedExternalLink: Decodable, Sendable {
-    let url: URL
-    let label: String
+/// Built to handle bad URLs and label Arrays
+public struct FeedExternalLink: Decodable, Sendable, Equatable {
+    public let url: URL?
+    public let label: StringOrStringArray?
+
+    enum CodingKeys: String, CodingKey {
+        case url, label
+    }
+
+    public var bestLabel: String? {
+        label?.first ?? label?.joined
+    }
 }
 
 public struct FeedItem: Decodable, Sendable {
@@ -98,7 +107,7 @@ public struct FeedItem: Decodable, Sendable {
     let author: FeedAuthor?
     let country: FeedTerm?
     let filmmaker: String?
-    let labels: String?
+    let labels: StringOrStringArray?
     let links: [FeedExternalLink]?
     let durationString: String?
     let genre: FeedTerm?
@@ -173,4 +182,40 @@ public enum BoolOrArray: Decodable, Equatable, Sendable {
 /// AnyDecodable lets us decode “whatever” without caring.
 public struct AnyDecodable: Decodable, Equatable, Sendable {
     public init(from decoder: Decoder) throws { }
+}
+
+/// Decodes either:
+/// - "News"
+/// - ["News", "Interviews"]
+/// - null / missing
+public struct StringOrStringArray: Decodable, Equatable, Sendable {
+    public let values: [String]
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.singleValueContainer()
+
+        if c.decodeNil() {
+            self.values = []
+        } else if let s = try? c.decode(String.self) {
+            self.values = [s]
+        } else if let arr = try? c.decode([String].self) {
+            self.values = arr
+        } else {
+            self.values = []
+        }
+    }
+
+    public var joined: String { values.joined(separator: " / ") }
+    public var first: String? { values.first }
+}
+
+public struct StringOrInt: Decodable, Equatable, Sendable {
+    public let value: String
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.singleValueContainer()
+        if let s = try? c.decode(String.self) { value = s; return }
+        if let i = try? c.decode(Int.self) { value = String(i); return }
+        value = ""
+    }
 }

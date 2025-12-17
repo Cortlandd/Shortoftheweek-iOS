@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct SOTWCustomLoader: View {
+    @Environment(\.colorScheme) var colorScheme
+    
     // MARK: - Tuning
     var spinDuration: TimeInterval = 2.4
     var clockwise: Bool = true
@@ -74,7 +76,7 @@ struct SOTWCustomLoader: View {
                     )
 
                 // 2) Center image (static)
-                Image("sotwFullLogo")
+                Image(colorScheme == .dark ? "sotwFullLogoWhite" : "sotwFullLogo")
                     .resizable()
                     .scaledToFit()
                     .padding(32)
@@ -133,7 +135,6 @@ struct SOTWCustomLoader: View {
 
 #Preview {
     ZStack {
-        Color.white.ignoresSafeArea()
         SOTWCustomLoader()
     }
 }

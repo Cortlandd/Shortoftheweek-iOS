@@ -27,7 +27,7 @@ struct RootView: View {
                                                 .resizable()
                                                 .scaledToFit()
                                                 .frame(height: 50)
-                                                .accessibilityLabel("Short of the Week")
+                                                .accessibilityLabel("Home Icon")
                                         } else {
                                             // The HomeView toolbar item will be hidden during presentation
                                             EmptyView()
@@ -46,7 +46,22 @@ struct RootView: View {
                                             .resizable()
                                             .scaledToFit()
                                             .frame(height: 50)
-                                            .accessibilityLabel("News Page")
+                                            .accessibilityLabel("News Icon")
+                                    }
+                                }
+                        }
+                    }
+                    Tab("Search", systemImage: "magnifyingglass", value: RootReducer.Tab.search) {
+                        NavigationStack {
+                            SearchView(store: store.scope(state: \.search, action: \.search))
+                                .navigationBarTitleDisplayMode(.inline)
+                                .toolbar {
+                                    ToolbarItem(placement: .principal) {
+                                        Image("sotwLogoTransparent")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(height: 50)
+                                            .accessibilityLabel("Search Icon")
                                     }
                                 }
                         }

@@ -70,6 +70,15 @@ extension FeedClient: DependencyKey {
         }
 
         let url = try buildURL(endpoint: endpoint, page: page, limit: limit)
+        
+        print("🌐 Request:", url.absoluteString.prefix(250))
+        print("🌐 URL length:", url.absoluteString.count)
+
+        if case let .search(q) = endpoint {
+          print("🔎 query length:", q.count)
+          print("🔎 query preview:", q.prefix(200))
+        }
+
         let request = NetworkSession.request(url: url)
         let (data, _) = try await NetworkSession.shared.data(for: request)
 
@@ -109,13 +118,22 @@ extension FeedClient: DependencyKey {
         case .search(let query):
             base = "https://www.shortoftheweek.com/api/v1/search"
             let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-            queryItems.insert(.init(name: "q", value: trimmed), at: 0)
+
+            // Hard cap. 80–120 is usually plenty for search.
+            let capped = String(trimmed.prefix(100))
+
+            // If empty after trimming, don’t even call the endpoint upstream.
+            queryItems.insert(.init(name: "q", value: capped), at: 0)
         }
 
         guard var components = URLComponents(string: base) else {
             throw URLError(.badURL)
         }
         components.queryItems = queryItems
+
+        if let q = components.percentEncodedQuery {
+            components.percentEncodedQuery = q.replacingOccurrences(of: "%20", with: "+")
+        }
 
         guard let url = components.url else {
             throw URLError(.badURL)

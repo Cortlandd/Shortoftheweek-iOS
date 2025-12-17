@@ -34,8 +34,8 @@ public struct FilmDetailView: View {
     public var body: some View {
         WithPerceptionTracking {
             ZStack(alignment: .top) {
-                Color.black
-                    .ignoresSafeArea()
+                Color(hex: "#D7E0DB")
+                    .ignoresSafeArea(edges: .bottom)
 
                 ScrollView {
                     VStack(spacing: 0) {
@@ -56,6 +56,7 @@ public struct FilmDetailView: View {
                     }
                     .frame(maxWidth: .infinity)
                 }
+                .ignoresSafeArea()
                 .navigationBarBackButtonHidden(true)
                 .toolbar {
                     ToolbarItem(placement: .principal) {
@@ -74,12 +75,12 @@ public struct FilmDetailView: View {
                             } else {
                                 ZStack {
                                     Circle()
-                                        .fill(Color.white)
+                                        .fill(Color.secondary)
                                         .frame(width: 42, height: 42)
                                     
                                     Image(systemName: "xmark")
                                         .font(.system(size: 18, weight: .semibold, design: .rounded))
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(.primary)
                                 }
                             }
                         }
@@ -115,8 +116,6 @@ public struct FilmDetailView: View {
                         .frame(width: proxy.size.width, height: proxy.size.height)
                         .clipped()
                 }
-                    // Navigation hero transition is now driven by `.navigationTransition(.zoom(...))`
-                    // in the presenting view. We intentionally do not use matchedGeometryEffect here.
 
                 // gradient overlay
                 LinearGradient(
@@ -301,6 +300,29 @@ public struct FilmDetailView: View {
         }
         return parts.isEmpty ? nil : parts.joined(separator: " / ")
     }
+    
+    private func configureLegacyTranslucentBars() {
+        let nav = UINavigationBarAppearance()
+        nav.configureWithTransparentBackground()
+        nav.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
+        nav.backgroundColor = UIColor.black.withAlphaComponent(0.20)
+        nav.titleTextAttributes = [.foregroundColor: UIColor.white]
+        nav.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+
+        UINavigationBar.appearance().standardAppearance = nav
+        UINavigationBar.appearance().scrollEdgeAppearance = nav
+        UINavigationBar.appearance().compactAppearance = nav
+
+        let tab = UITabBarAppearance()
+        tab.configureWithTransparentBackground()
+        tab.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
+        tab.backgroundColor = UIColor.black.withAlphaComponent(0.20)
+
+        UITabBar.appearance().standardAppearance = tab
+        if #available(iOS 15.0, *) {
+          UITabBar.appearance().scrollEdgeAppearance = tab
+        }
+      }
 }
 
 // MARK: - Local hero overlays (no shared FilmHeroTextOverlay)

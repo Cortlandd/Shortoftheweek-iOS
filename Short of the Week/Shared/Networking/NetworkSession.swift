@@ -14,20 +14,30 @@ import Foundation
 ///   spam the API for identical resources.
 enum NetworkSession {
     static let shared: URLSession = {
-        let config = URLSessionConfiguration.default
-        config.urlCache = .shared
+        let config = URLSessionConfiguration.ephemeral
+
+        // ✅ Avoid huge Cookie headers from Safari/WKWebView storage
+        config.httpShouldSetCookies = false
+        config.httpCookieStorage = nil
+        config.httpCookieAcceptPolicy = .never
+
+        // You can still keep caching if you want, but use a private cache
+        config.urlCache = URLCache(memoryCapacity: 20 * 1024 * 1024,
+                                  diskCapacity: 0,
+                                  diskPath: nil)
         config.requestCachePolicy = .returnCacheDataElseLoad
-        // Avoid very aggressive network behavior when the user scrolls quickly.
+
         config.waitsForConnectivity = true
+        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForResource = 60
+
         return URLSession(configuration: config)
     }()
 
-    static func request(
-        url: URL,
-        cachePolicy: URLRequest.CachePolicy = .returnCacheDataElseLoad
-    ) -> URLRequest {
-        var request = URLRequest(url: url)
-        request.cachePolicy = cachePolicy
-        return request
+    static func request(url: URL) -> URLRequest {
+        var req = URLRequest(url: url)
+        req.httpMethod = "GET"
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
+        return req
     }
 }
