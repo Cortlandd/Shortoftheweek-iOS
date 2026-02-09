@@ -16,7 +16,7 @@ struct RootView: View {
         WithPerceptionTracking {
             ZStack {
                 TabView(selection: $store.selectedTab.sending(\.selectTab)) {
-                    Tab("Home", systemImage: "house.fill", value: RootReducer.Tab.home) {
+                    Tab("Shorts", systemImage: "film", value: RootReducer.Tab.home) {
                         NavigationStack {
                             HomeView(store: store.scope(state: \.home, action: \.home))
                                 .navigationBarTitleDisplayMode(.inline)
@@ -125,3 +125,4 @@ import ComposableArchitecture
     .preferredColorScheme(.dark)
 }
 #endif
+
